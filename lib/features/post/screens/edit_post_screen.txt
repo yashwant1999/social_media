@@ -1,0 +1,100 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reddit/features/auth/controller/auth_controller.dart';
+import 'package:reddit/features/post/controller/post_controller.dart';
+
+class EditPostScreen extends ConsumerStatefulWidget {
+  final Uint8List? file;
+  const EditPostScreen({super.key, required this.file});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _EditPostScreenState();
+}
+
+class _EditPostScreenState extends ConsumerState<EditPostScreen> {
+  final TextEditingController _descriptionController = TextEditingController();
+
+  void _sharePostImage(Uint8List? file) {
+    ref.read(postControllerProvider.notifier).shareImagePost(
+        context: context,
+        description: _descriptionController.text.trim(),
+        file: file);
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(userProvider)!;
+    final isLoading = ref.watch(postControllerProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text(
+          'Post to',
+        ),
+        centerTitle: false,
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => _sharePostImage(widget.file),
+            child: const Text(
+              "Post",
+              style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0),
+            ),
+          )
+        ],
+      ),
+      body: Column(
+        children: [
+          isLoading
+              ? const LinearProgressIndicator()
+              : const Padding(padding: EdgeInsets.only(top: 0.0)),
+          const Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundImage: NetworkImage(user.profilePic),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.5,
+                child: TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                      hintText: "Write a caption...", border: InputBorder.none),
+                  maxLines: 8,
+                ),
+              ),
+              SizedBox(
+                height: 45.0,
+                width: 45.0,
+                child: AspectRatio(
+                  aspectRatio: 487 / 451,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                      fit: BoxFit.fill,
+                      alignment: FractionalOffset.topCenter,
+                      image: MemoryImage(widget.file!),
+                    )),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider()
+        ],
+      ),
+    );
+  }
+}

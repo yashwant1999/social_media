@@ -1,0 +1,4 @@
+enum XThemeMode {
+  light,
+  dark,
+}
